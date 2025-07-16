@@ -17,17 +17,17 @@ help: ## Show available targets
 
 deploy-core: ## Deploy core infrastructure (Traefik, etc.)
 	@echo "$(GREEN)🚀 Deploying core infrastructure...$(NC)"
-	docker-compose -f $(CORE_COMPOSE) up -d
+	docker compose -f $(CORE_COMPOSE) up -d
 	@echo "$(GREEN)✅ Core infrastructure deployed$(NC)"
 
 deploy-business: ## Deploy business applications
 	@echo "$(GREEN)🚀 Deploying business applications...$(NC)"
-	docker-compose -f $(BUSINESS_COMPOSE) up -d
+	docker compose -f $(BUSINESS_COMPOSE) up -d
 	@echo "$(GREEN)✅ Business applications deployed$(NC)"
 
 deploy-main: ## Deploy main site
 	@echo "$(GREEN)🚀 Deploying main site...$(NC)"
-	docker-compose -f $(MAIN_COMPOSE) up -d
+	docker compose -f $(MAIN_COMPOSE) up -d
 	@echo "$(GREEN)✅ Main site deployed$(NC)"
 
 deploy-all: deploy-core ## Deploy everything in correct order
@@ -39,25 +39,25 @@ deploy-all: deploy-core ## Deploy everything in correct order
 
 health-check: ## Check all services status
 	@echo "$(GREEN)🔍 Checking core services...$(NC)"
-	docker-compose -f $(CORE_COMPOSE) ps
+	docker compose -f $(CORE_COMPOSE) ps
 	@echo "$(GREEN)🔍 Checking business services...$(NC)"
-	docker-compose -f $(BUSINESS_COMPOSE) ps
+	docker compose -f $(BUSINESS_COMPOSE) ps
 	@echo "$(GREEN)🔍 Checking main site services...$(NC)"
-	docker-compose -f $(MAIN_COMPOSE) ps
+	docker compose -f $(MAIN_COMPOSE) ps
 
 stop-all: ## Stop all services
 	@echo "$(YELLOW)🛑 Stopping all services...$(NC)"
-	docker-compose -f $(MAIN_COMPOSE) down
-	docker-compose -f $(BUSINESS_COMPOSE) down
-	docker-compose -f $(CORE_COMPOSE) down
+	docker compose -f $(MAIN_COMPOSE) down
+	docker compose -f $(BUSINESS_COMPOSE) down
+	docker compose -f $(CORE_COMPOSE) down
 
 restart-all: stop-all deploy-all ## Restart everything
 
 logs-core: ## Show core service logs
-	docker-compose -f $(CORE_COMPOSE) logs -f
+	docker compose -f $(CORE_COMPOSE) logs -f
 
 logs-business: ## Show business service logs
-	docker-compose -f $(BUSINESS_COMPOSE) logs -f
+	docker compose -f $(BUSINESS_COMPOSE) logs -f
 
 logs-main: ## Show main site logs
-	docker-compose -f $(MAIN_COMPOSE) logs -f
+	docker compose -f $(MAIN_COMPOSE) logs -f
