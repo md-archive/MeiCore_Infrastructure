@@ -26,12 +26,16 @@ services:
       WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
       WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
       WORDPRESS_REDIS_HOST: redcat_redis
-    labels: 
+    labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.wordpress.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.wordpress.priority=1"
-      - "traefik.http.routers.wordpress.entrypoints=web"
-      - "traefik.http.services.wordpress.loadbalancer.server.port=80"
+      # Main wordpress routing
+      - "traefik.http.routers.wordpress.rule=Host(`${DOMAIN}`) && PathPrefix(`/`)"
+      - "traefik.http.routers.wordpress.entrypoints=websecure"
+      - "traefik.http.routers.wordpress.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.wordpress.middlewares=wordpress-strip"
+      # Strip prefix middleware
+      - "traefik.http.middlewares.wordpress-strip.stripprefix.prefixes=/wordpress"
+      - "traefik.http.services.wordpress.loadbalancer.server.port=4040"
     ports:
       - "4040:80"
     volumes:
@@ -62,16 +66,14 @@ services:
       - "8181:80"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.adminer.rule=PathPrefix(`/adminer`)"
-      - "traefik.http.routers.adminer.entrypoints=web"
+      # Main adminer routing
+      - "traefik.http.routers.adminer.rule=Host(`${DOMAIN}`) && PathPrefix(`/adminer`)"
+      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.routers.adminer.tls.certresolver=letsencrypt"
       - "traefik.http.routers.adminer.middlewares=adminer-strip"
+      # Strip prefix middleware
       - "traefik.http.middlewares.adminer-strip.stripprefix.prefixes=/adminer"
-      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
-    environment:
-      # PMA_HOST: redcat_database
-      # PMA_USER: ${REDIS_USER}
-      # PMA_PASSWORD: ${REDIS_PASSWORD}
-      UPLOAD_LIMIT: 1000000000
+      - "traefik.http.services.adminer.loadbalancer.server.port=8000"
     depends_on:
      - redcat_database
 
