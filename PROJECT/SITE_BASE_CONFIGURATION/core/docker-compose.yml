@@ -1,27 +1,29 @@
 services:
-
+  
   traefik:
-    image: traefik:2.11
+    image: traefik:${TRAEFIK_VERSION:-2.11}
     container_name: traefik
     restart: unless-stopped
     command:
-      - "--api.dashboard=true"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-#      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-#      - "--certificatesresolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}"
-#      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - --api.dashboard=${TRAEFIK_DASHBOARD_ENABLED:-true}
+      - --log.level=${TRAEFIK_LOG_LEVEL:-INFO}
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=${TRAEFIK_NETWORK:-traefik-network}
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
     ports:
       - "${TRAEFIK_HTTP_PORT:-80}:80"
       - "${TRAEFIK_HTTPS_PORT:-443}:443"
       - "${TRAEFIK_DASHBOARD_PORT:-8020}:8080"
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./letsencrypt:/letsencrypt"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/letsencrypt:/letsencrypt
+      - ./config/traefik:/etc/traefik
     networks:
+      - traefik_network
       - meicore
     labels:
       - "traefik.enable=true"
@@ -62,8 +64,14 @@ services:
     networks:
       - meicore
 
-  # MySQL as the database
 networks:
+  traefik-network:
+     name: ${TRAEFIK_NETWORK:-traefik_network}
+     driver: bridge
+     ipam:
+      config:
+        - subnet: ${SUBNET_CORE:-172.20.0.0/16}
+
   meicore:
     name: meicore
     external: true
