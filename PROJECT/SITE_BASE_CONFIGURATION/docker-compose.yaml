@@ -1,0 +1,6 @@
+version: '3.8'
+
+include:
+  - core/docker-compose.yml
+  - applications/business.redcat.best/docker-compose.yaml
+  - applications/redcat.best/docker-compose.yaml
