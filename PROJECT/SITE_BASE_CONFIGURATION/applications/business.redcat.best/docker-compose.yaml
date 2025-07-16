@@ -2,7 +2,7 @@ services:
   odoo:
     image: odoo:18.0
     networks:
-      - meicore
+      - proxy_network
       - odoo_internal
     labels:
       - "traefik.enable=true"
@@ -16,7 +16,8 @@ services:
      - odoo_internal
 
 networks:
-  meicore:
+  proxy_network:
     external: true
+    name: ${TRAEFIK_NETWORK:-proxy_network}
   odoo_internal:
     driver: bridge

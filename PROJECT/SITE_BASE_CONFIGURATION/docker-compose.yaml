@@ -1,7 +1,11 @@
 version: '3.8'
 
+networks:
+  traefik_network:
+    external: true
+    name: ${TRAEFIK_NETWORK}
+    
 include:
   - core/docker-compose.yml
   - applications/business.redcat.best/docker-compose.yaml
   - applications/redcat.best/docker-compose.yaml
-  

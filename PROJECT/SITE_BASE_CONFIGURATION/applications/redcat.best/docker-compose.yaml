@@ -12,7 +12,6 @@ services:
     volumes:
       - /volumes/containers/RedCatFactory/db:/var/lib/mysql
     networks:
-      - meicore
       - redcat_internal
 
   # WordPress CMS
@@ -40,6 +39,7 @@ services:
       - /volumes/containers/RedCatFactory/php/php.ini:/usr/local/etc/php/conf.d/custom-php.ini
     networks:
       - redcat_internal
+      - proxy_network
     depends_on:
       - redcat_database
       - redcat_redis
@@ -55,7 +55,11 @@ services:
   adminer:
     image: adminer:latest
     restart: unless-stopped
-    networks: [meicore, redcat_internal]
+    networks: 
+      - redcat_internal
+      - proxy_network
+    ports:
+      - "8181:80"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.adminer.rule=PathPrefix(`/adminer`)"
@@ -72,7 +76,9 @@ services:
      - redcat_database
 
 networks:
-  meicore:
-    external: true
   redcat_internal:
     driver: bridge
+
+  proxy_network:
+    external: true
+    name: ${TRAEFIK_NETWORK:-proxy_network}
