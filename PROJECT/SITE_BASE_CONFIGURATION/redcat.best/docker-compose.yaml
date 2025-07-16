@@ -65,8 +65,8 @@ services:
       - "traefik.http.services.adminer.loadbalancer.server.port=8080"
     environment:
       # PMA_HOST: redcat_database
-      # PMA_USER: redcat
-      # PMA_PASSWORD: 6*ZsUxTAiNnAR7
+      # PMA_USER: ${REDIS_USER}
+      # PMA_PASSWORD: ${REDIS_PASSWORD}
       UPLOAD_LIMIT: 1000000000
     depends_on:
      - redcat_database
