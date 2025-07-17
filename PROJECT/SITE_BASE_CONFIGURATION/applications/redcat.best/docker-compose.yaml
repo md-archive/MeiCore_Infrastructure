@@ -7,7 +7,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MARIADB_DBNAME}
-      MYSQL_USER: ${MARIDB_USER}
+      MYSQL_USER: ${MARIADB_USER}
       MYSQL_PASSWORD: ${MARIADB_PASSWORD}
     volumes:
       - /volumes/containers/RedCatFactory/db:/var/lib/mysql
@@ -26,16 +26,19 @@ services:
       WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
       WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
       WORDPRESS_REDIS_HOST: redcat_redis
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_HOME', 'https://${DOMAIN}');
+        define('WP_SITEURL', 'https://${DOMAIN}');
     labels:
       - "traefik.enable=true"
       # Main wordpress routing
-      - "traefik.http.routers.wordpress.rule=Host(`${DOMAIN}`) && PathPrefix(`/`)"
-      - "traefik.http.routers.wordpress.entrypoints=websecure"
+      - "traefik.http.routers.wordpress.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.wordpress.entrypoints=web"
       - "traefik.http.routers.wordpress.tls.certresolver=letsencrypt"
       - "traefik.http.routers.wordpress.middlewares=wordpress-strip"
       # Strip prefix middleware
       - "traefik.http.middlewares.wordpress-strip.stripprefix.prefixes=/wordpress"
-      - "traefik.http.services.wordpress.loadbalancer.server.port=4040"
+      - "traefik.http.services.wordpress.loadbalancer.server.port=443"
     ports:
       - "4040:80"
     volumes:
