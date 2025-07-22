@@ -35,12 +35,12 @@ deploy-main: ## Deploy main site
 	docker compose -f $(MAIN_COMPOSE) --env-file environments/.main.env up -d
 	@echo "$(GREEN)✅ Main site deployed$(NC)"
 
-destroy-main: ## Destroy main site
+destroy-main: ## Destroy main site 
 	@echo "$(YELLOW) Removing main site... $(NC)"
 	docker compose -f $(MAIN_COMPOSE) --env-file environments/.main.env down -v
 	@echo "$(YELLOW) Destruction complete $(NC)"
 
-deploy-all: deploy-production ## Deploy everything in correct order
+deploy-all: deploy-core ## Deploy everything in correct order
 	@sleep 10  # Wait for core to be ready
 	@$(MAKE) deploy-business
 	@sleep 5   # Wait for business to be ready
@@ -57,8 +57,9 @@ health-check: ## Check all services status
 
 stop-all: ## Stop all services
 	@echo "$(YELLOW)🛑 Stopping all services...$(NC)"
-	docker compose -f $(MAIN_COMPOSE) --env-file environments/.main.env down
-	docker compose -f $(CORE_COMPOSE) --env-file environments/.prod.env down
+	docker compose -f $(MAIN_COMPOSE)  --env-file environments/.main.env down
+	#docker compose -f $(BUSINESS_COMPOSE) down
+	docker compose -f $(CORE_COMPOSE)  --env-file environments/.prod.env down
 
 restart-all: stop-all deploy-all ## Restart everything
 

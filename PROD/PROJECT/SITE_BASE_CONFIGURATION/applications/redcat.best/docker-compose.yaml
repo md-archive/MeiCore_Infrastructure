@@ -1,0 +1,79 @@
+services:
+
+  redcat_database:
+    container_name: redcat_database
+    image: mariadb:latest
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MARIADB_DBNAME}
+      MYSQL_USER: ${MARIADB_USER}
+      MYSQL_PASSWORD: ${MARIADB_PASSWORD}
+    volumes:
+      - /volumes/containers/RedCatFactory/db:/var/lib/mysql
+    networks:
+      - redcat_internal
+
+  # WordPress CMS
+  redcat_site:
+    image: wordpress:latest
+    restart: unless-stopped
+
+    container_name: redcat_site
+    environment:
+      WORDPRESS_DATABASE_HOST: redcat_database
+      WORDPRESS_DATABASE_USER: ${WORDPRESS_USER}
+      WORDPRESS_DATABASE_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DATABASE_NAME: ${WORDPRESS_DB_NAME}
+      WORDPRESS_REDIS_HOST: redcat_redis
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_HOME', 'https://${WORDPRESS_DOMAIN}');
+        define('WP_SITEURL', 'https://${WORDPRESS_DOMAIN}');
+#        define('WP_MEMORY_LIMIT' , '1024M');
+#        define('WP_MAX_MEMORY_LIMIT', '2048M');
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.redcat_site.rule=Host(`${WORDPRESS_DOMAIN}`)"
+      - "traefik.http.routers.redcat_site.service=redcat_site"
+      - "traefik.http.routers.redcat_site.entrypoints=websecure"
+      - "traefik.http.routers.redcat_site.priority=1"  # LOW priority
+      - "traefik.http.routers.redcat_site.tls=true"
+      - "traefik.http.routers.redcat_site.tls.certresolver=letsencrypt"
+      - "traefik.http.services.redcat_site.loadbalancer.server.port=80"
+      - "traefik.http.services.redcat_site.loadbalancer.passhostheader=true"
+      # Middlewares
+      - "traefik.http.middlewares.compresstraefik.compress=true"
+      - "traefik.http.middlewares.wp-cors.headers.accessControlAllowOriginList=${ORIGIN_LIST}"
+      - "traefik.http.middlewares.wp-cors.headers.accessControlAllowHeaders=${ALLOW_HEADERS}"
+#      - "traefik.http.middlewares.wp-cors.headers.accessControlAllowMethods=GET,POST,PUT,DELETE,OPTIONS"
+      - "traefik.http.routers.redcat_site.middlewares=wp-cors, compresstraefik"
+      - "traefik.docker.network=proxy_network"
+    volumes:
+      - /volumes/containers/RedCatFactory/site/base:/var/www/html
+      - /volumes/containers/RedCatFactory/php/php.ini:/usr/local/etc/php/conf.d/custom-php.ini
+    networks:
+      - redcat_internal
+      - proxy_network
+    depends_on:
+      - redcat_database
+      - redcat_redis
+
+  # Redis
+  redcat_redis:
+    image: redis:latest
+    container_name: redcat_redis
+    restart: unless-stopped
+    networks:
+      - redcat_internal
+
+networks:
+  redcat_internal:
+    driver: bridge
+
+  proxy_network:
+    external: true
+    name: ${TRAEFIK_NETWORK:-proxy_network}
+
+

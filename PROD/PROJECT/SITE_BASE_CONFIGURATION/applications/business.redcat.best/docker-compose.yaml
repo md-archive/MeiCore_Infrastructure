@@ -1,0 +1,23 @@
+services:
+  odoo:
+    image: odoo:18.0
+    networks:
+      - proxy_network
+      - odoo_internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.odoo.rule=Host(`business.{$DOMAIN}`)"
+      - "traefik.http.routers.odoo.entrypoints=websecure"
+      - "traefik.http.routers.odoo.tls.certresolver=core"
+  
+  db: 
+    image: postgres:15
+    networks:
+     - odoo_internal
+
+networks:
+  proxy_network:
+    external: true
+    name: ${TRAEFIK_NETWORK:-proxy_network}
+  odoo_internal:
+    driver: bridge
