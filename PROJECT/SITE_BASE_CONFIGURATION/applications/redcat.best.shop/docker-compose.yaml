@@ -14,7 +14,7 @@ services:
     volumes:
       - /volumes/containers/RedCatFactory/shop/db:/var/lib/mysql
     networks:
-      - redcat_internal
+      - redcat_internal_shop
 
   # WordPress CMS
   redcat_shop:
