@@ -7,12 +7,12 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MARIADB_DBNAME}
-      MYSQL_USER: ${MARIADB_USER}
-      MYSQL_PASSWORD: ${MARIADB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DBNAME}
+      MARIADB_USER: ${MARIADB_USER}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD}
     volumes:
-      - /volumes/containers/RedCatFactory/db:/var/lib/mysql
+      - /volumes/containers/RedCatFactory/web/db:/var/lib/mysql
     networks:
       - redcat_internal
 
@@ -23,10 +23,10 @@ services:
 
     container_name: redcat_site
     environment:
-      WORDPRESS_DATABASE_HOST: redcat_database
-      WORDPRESS_DATABASE_USER: ${WORDPRESS_USER}
-      WORDPRESS_DATABASE_PASSWORD: ${WORDPRESS_DB_PASSWORD}
-      WORDPRESS_DATABASE_NAME: ${WORDPRESS_DB_NAME}
+      WORDPRESS_DB_HOST: redcat_database
+      WORDPRESS_DB_USER: ${WORDPRESS_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
       WORDPRESS_REDIS_HOST: redcat_redis
       WORDPRESS_CONFIG_EXTRA: |
         define('WP_HOME', 'https://${WORDPRESS_DOMAIN}');
@@ -49,8 +49,8 @@ services:
       - "traefik.http.routers.redcat_site.middlewares=wp-cors, compresstraefik"
       - "traefik.docker.network=proxy_network"
     volumes:
-      - /volumes/containers/RedCatFactory/site/base:/var/www/html
-      - /volumes/containers/RedCatFactory/php/php.ini:/usr/local/etc/php/conf.d/custom-php.ini
+      - /volumes/containers/RedCatFactory/web/site/base:/var/www/html
+      - /volumes/containers/RedCatFactory/web/php/php.ini:/usr/local/etc/php/conf.d/custom-php.ini
     networks:
       - redcat_internal
       - proxy_network
