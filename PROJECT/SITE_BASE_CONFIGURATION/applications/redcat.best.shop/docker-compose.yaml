@@ -55,8 +55,8 @@ services:
       - redcat_internal_shop
       - proxy_network
     depends_on:
-      - redcat_database
-      - redcat_redis
+      - redcat_database_woo
+      - redcat_redis_shop
 
   # Redis
   redcat_redis_shop:
