@@ -1,0 +1,16 @@
+services:
+  {{ service_name }}:
+    image: {{ image_name }}:{{ image_tag }}
+    container_name: {{ container_name }}
+    ports:
+      - "{{ external_port }}:{{ internal_port }}"
+    volumes:
+      - "{{ volume_path }}:/data"
+    environment:
+      {% for var, val in env.items() %}
+      - {{ var }}={{ val }}
+      {% endfor %}
+    labels:
+      {% for label, value in labels.items() %}
+      - "{{ label }}={{ value }}"
+      {% endfor %}
