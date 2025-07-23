@@ -3,8 +3,6 @@ services:
   redcat_database_woo:
     container_name: redcat_database_woo
     image: mariadb:latest
-    env_file:
-      - "../../environments/.prod.env"
     restart: unless-stopped
     ports:
       - "3304:3306"

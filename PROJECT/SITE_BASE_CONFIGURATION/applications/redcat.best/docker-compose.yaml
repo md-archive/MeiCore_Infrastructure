@@ -4,8 +4,6 @@ services:
     container_name: redcat_database
     image: mariadb:latest
     restart: unless-stopped
-    env_file:
-      - "../../environments/.prod.env"
     ports:
       - "3306:3306"
     environment:
@@ -22,8 +20,6 @@ services:
   redcat_site:
     image: wordpress:latest
     restart: unless-stopped
-    env_file:
-      - "../../environments/.prod.env"
     container_name: redcat_site
     environment:
       WORDPRESS_DB_HOST: redcat_database

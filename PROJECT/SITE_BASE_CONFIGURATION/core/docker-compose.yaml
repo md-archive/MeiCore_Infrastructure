@@ -3,8 +3,6 @@ services:
   traefik:
     image: traefik:${TRAEFIK_VERSION:-2.11}
     container_name: traefik
-    env_file:
-      - "../environments/.prod.env"
     restart: unless-stopped
     command:
       - --api.dashboard=${TRAEFIK_DASHBOARD_ENABLED:-false}
@@ -46,8 +44,6 @@ services:
     image: portainer/portainer-ce:latest
     container_name: portainer
     restart: unless-stopped
-    env_file:
-      - "../environments/.prod.env"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "${PORTAINER_CONTAINER}/portainer/data:/data"
@@ -66,8 +62,6 @@ services:
 
   cloudflared_tunnel:
     image: cloudflare/cloudflared:latest
-    env_file:
-      - "../environments/.prod.env"
     container_name: cloudflared_tunnel
     restart: unless-stopped
     command: tunnel run
