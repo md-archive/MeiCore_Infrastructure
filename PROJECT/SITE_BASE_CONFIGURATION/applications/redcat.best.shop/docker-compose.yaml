@@ -3,6 +3,8 @@ services:
   redcat_database_woo:
     container_name: redcat_database_woo
     image: mariadb:latest
+    env_file:
+      - "../../environments/.prod.env"
     restart: unless-stopped
     ports:
       - "3304:3306"
@@ -12,7 +14,7 @@ services:
       MARIADB_USER: ${MARIADB_USER}
       MARIADB_PASSWORD: ${MARIADB_PASSWORD}
     volumes:
-      - /volumes/containers/RedCatFactory/shop/db:/var/lib/mysql
+      - ${SHOP_CONTAINERS}/shop/db:/var/lib/mysql
     networks:
       - redcat_internal_shop
 
@@ -23,9 +25,9 @@ services:
     container_name: redcat_shop
     environment:
       WORDPRESS_DB_HOST: redcat_database_woo
-      WORDPRESS_DB_USER: ${WORDPRESS_USER}
-      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
-      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
+      WORDPRESS_DB_USER: ${WOO_USER}
+      WORDPRESS_DB_PASSWORD: ${WOO_PASSWORD}
+      WORDPRESS_DB_NAME: ${WOO_DB_NAME}
       WORDPRESS_REDIS_HOST: redcat_redis_shop
       WORDPRESS_CONFIG_EXTRA: |
         define('WP_HOME', 'https://${SHOP_DOMAIN}');
@@ -42,15 +44,15 @@ services:
       - "traefik.http.services.redcat_shop.loadbalancer.passhostheader=true"
       # Middlewares
       - "traefik.http.middlewares.compresstraefik.compress=true"
-      - "traefik.http.middlewares.shop-cors.headers.accessControlAllowOriginList=${ORIGIN_LIST}"
-      - "traefik.http.middlewares.shop-cors.headers.accessControlAllowHeaders=${ALLOW_HEADERS}"
+      - "traefik.http.middlewares.shop-cors.headers.accessControlAllowOriginList=${WOO_ORIGIN_LIST}"
+      - "traefik.http.middlewares.shop-cors.headers.accessControlAllowHeaders=${WOO_ALLOW_HEADERS}"
       - "traefik.http.middlewares.shop-cors.headers.accessControlAllowMethods=GET,POST,PUT,DELETE,OPTIONS"
       - "traefik.http.middlewares.stip-shop-path.stripprefix.prefixes=/shop"
       - "traefik.http.routers.redcat_shop.middlewares=shop-cors, compresstraefik"
       - "traefik.docker.network=proxy_network"
     volumes:
-      - /volumes/containers/RedCatFactory/shop/site/base:/var/www/html
-      - /volumes/containers/RedCatFactory/shop/php/php.ini:/usr/local/etc/php/conf.d/custom-php.ini
+      - ${SHOP_CONTAINERS}/shop/site/base:/var/www/html
+      - ${SHOP_CONTAINERS}/shop/php/php.ini:/usr/local/etc/php/conf.d/custom-php.ini
     networks:
       - redcat_internal_shop
       - proxy_network

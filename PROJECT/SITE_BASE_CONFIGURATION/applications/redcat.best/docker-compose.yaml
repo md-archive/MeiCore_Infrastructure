@@ -4,6 +4,8 @@ services:
     container_name: redcat_database
     image: mariadb:latest
     restart: unless-stopped
+    env_file:
+      - "../../environments/.prod.env"
     ports:
       - "3306:3306"
     environment:
@@ -12,7 +14,7 @@ services:
       MARIADB_USER: ${MARIADB_USER}
       MARIADB_PASSWORD: ${MARIADB_PASSWORD}
     volumes:
-      - /volumes/containers/RedCatFactory/web/db:/var/lib/mysql
+      - ${REDCATBEST_CONTAINERS}/web/db:/var/lib/mysql
     networks:
       - redcat_internal
 
@@ -20,7 +22,8 @@ services:
   redcat_site:
     image: wordpress:latest
     restart: unless-stopped
-
+    env_file:
+      - "../../environments/.prod.env"
     container_name: redcat_site
     environment:
       WORDPRESS_DB_HOST: redcat_database
@@ -49,8 +52,8 @@ services:
       - "traefik.http.routers.redcat_site.middlewares=wp-cors, compresstraefik"
       - "traefik.docker.network=proxy_network"
     volumes:
-      - /volumes/containers/RedCatFactory/web/site/base:/var/www/html
-      - /volumes/containers/RedCatFactory/web/php/php.ini:/usr/local/etc/php/conf.d/custom-php.ini
+      - ${REDCATBEST_CONTAINERS}/web/site/base:/var/www/html
+      - ${REDCATBEST_CONTAINERS}/web/php/php.ini:/usr/local/etc/php/conf.d/custom-php.ini
     networks:
       - redcat_internal
       - proxy_network

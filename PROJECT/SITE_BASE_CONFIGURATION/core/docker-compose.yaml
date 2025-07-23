@@ -3,6 +3,8 @@ services:
   traefik:
     image: traefik:${TRAEFIK_VERSION:-2.11}
     container_name: traefik
+    env_file:
+      - "../../environments/.prod.env"
     restart: unless-stopped
     command:
       - --api.dashboard=${TRAEFIK_DASHBOARD_ENABLED:-false}
@@ -23,8 +25,8 @@ services:
       - "${TRAEFIK_DASHBOARD_PORT:-8020}:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${CONFIG_PATH}/letsencrypt:/letsencrypt
-      - ${CONFIG_PATH}/traefik:/etc/traefik
+      - ${CORE_CONFIG_PATH}/letsencrypt:/letsencrypt
+      - ${CORE_CONFIG_PATH}/traefik:/etc/traefik
     networks:
       - proxy_network
     labels:
@@ -44,13 +46,15 @@ services:
     image: portainer/portainer-ce:latest
     container_name: portainer
     restart: unless-stopped
+    env_file:
+      - "../../environments/.prod.env"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "${PORTAINER_DATA_PATH}:/data"
+      - "${PORTAINER_CONTAINER}/portainer/data:/data"
     labels: 
       - "traefik.enable=true"
       # Main portainer routing
-      - "traefik.http.routers.portainer.rule=Host(`${DOMAIN}`) && PathPrefix(`/portainer`)"
+      - "traefik.http.routers.portainer.rule=Host(`${SERVICES_DOMAIN}`) && PathPrefix(`/portainer`)"
       - "traefik.http.routers.portainer.entrypoints=websecure"
       - "traefik.http.routers.portainer.tls.certresolver=letsencrypt"
       - "traefik.http.routers.portainer.middlewares=portainer-strip"
@@ -62,13 +66,15 @@ services:
 
   cloudflared_tunnel:
     image: cloudflare/cloudflared:latest
+    env_file:
+      - "../../environments/.prod.env"
     container_name: cloudflared_tunnel
     restart: unless-stopped
     command: tunnel run
     environment: 
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     volumes:
-      - ${CONFIG_PATH}/cloudflared_tun:/etc/cloudflared
+      - ${CORE_CONFIG_PATH}/cloudflared_tun:/etc/cloudflared
     networks:
       - proxy_network
 
