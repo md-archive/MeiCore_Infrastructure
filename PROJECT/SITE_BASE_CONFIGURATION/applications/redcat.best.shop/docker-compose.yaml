@@ -61,10 +61,8 @@ services:
       - redcat_internal_shop
       - proxy_network
     depends_on:
-      redcat_database_woo:
-        condition: service_healthy
-      redcat_redis_shop:
-        condition: service_started
+      - redcat_database_woo
+      - redcat_redis_shop
 
   # Redis
   redcat_redis_shop:
