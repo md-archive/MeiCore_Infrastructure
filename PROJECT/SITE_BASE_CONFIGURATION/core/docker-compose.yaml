@@ -30,7 +30,7 @@ services:
     labels:
       - "traefik.enable=false"
       # Dashboard routing
-      - "traefik.http.routers.traefik-dashboard.rule=Host(`${DOMAIN}`) && PathPrefix(`/traefik`)"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`${SERVICES_DOMAIN}`) && PathPrefix(`/traefik`)"
       - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
       - "traefik.http.routers.traefik-dashboard.tls.certresolver=letsencrypt"
       - "traefik.http.routers.traefik-dashboard.middlewares=traefik-auth,traefik-strip"
