@@ -15,6 +15,11 @@ services:
       - ${SHOP_CONTAINERS}/shop/db:/var/lib/mysql
     networks:
       - redcat_internal_shop
+    # Add health check to ensure database is ready
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
 
   # WordPress CMS
   redcat_shop:
@@ -22,7 +27,8 @@ services:
     restart: unless-stopped
     container_name: redcat_shop
     environment:
-      WORDPRESS_DB_HOST: redcat_database_woo
+      # Use the container name with port 3306 (internal port)
+      WORDPRESS_DB_HOST: redcat_database_woo:3306
       WORDPRESS_DB_USER: ${WOO_DB_USER}
       WORDPRESS_DB_PASSWORD: ${WOO_DB_PASSWORD}
       WORDPRESS_DB_NAME: ${WOO_DB_NAME}
@@ -55,8 +61,10 @@ services:
       - redcat_internal_shop
       - proxy_network
     depends_on:
-      - redcat_database_woo
-      - redcat_redis_shop
+      redcat_database_woo:
+        condition: service_healthy
+      redcat_redis_shop:
+        condition: service_started
 
   # Redis
   redcat_redis_shop:
