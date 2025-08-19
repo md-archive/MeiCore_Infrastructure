@@ -75,11 +75,6 @@ def init_project(project_name, template, env_type):
         "applications": {}
 
     }
-    env_gen = {
-        "project_name" : project_name,
-        "env" : env_type,
-     
-        }
     env_templates = {
         "prod": "environments/templates/.prod.env.template",
         "stage":    "environments/templates/.stage.env.template",
@@ -88,8 +83,11 @@ def init_project(project_name, template, env_type):
     with open(projectID / "meicore.json", "w") as f:
         json.dump(config, f, indent=2)
 
-    with open(projectID / "environments/templates/{env_gen.env}", "w") as f:
-        json.dump(env_gen, f, indent=2)
+    with open(projectID / f"environments/templates/.{env_type}.env.template", "w") as f:
+        f.write(f"#Environment: {env_type}\n")
+        f.write(f"PROJECT_NAME={project_name}\n")
+        f.write("# meicore will add pre-created environment variables here, edit values where necessary\n")
+
 
     for directory in DIR_STRUCT:
         (projectID / directory).mkdir(exist_ok=True)
