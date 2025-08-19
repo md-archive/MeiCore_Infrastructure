@@ -1,5 +1,5 @@
 services:
-  
+
   traefik:
     image: traefik:${TRAEFIK_VERSION:-2.11}
     container_name: traefik
@@ -47,7 +47,7 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "${PORTAINER_CONTAINER}/portainer/data:/data"
-    labels: 
+    labels:
       - "traefik.enable=true"
       # Main portainer routing
       - "traefik.http.routers.portainer.rule=Host(`${SERVICES_DOMAIN}`) && PathPrefix(`/portainer`)"
@@ -56,7 +56,7 @@ services:
       - "traefik.http.routers.portainer.middlewares=portainer-strip"
       # Strip prefix middleware
       - "traefik.http.middlewares.portainer-strip.stripprefix.prefixes=/portainer"
-      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.http.services.portainer.loadbalancer.server.port=${PORTAINER_INTERNAL_PORT}"
     networks:
       - proxy_network
 
@@ -65,10 +65,27 @@ services:
     container_name: cloudflared_tunnel
     restart: unless-stopped
     command: tunnel run
-    environment: 
+    environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     volumes:
       - ${CORE_CONFIG_PATH}/cloudflared_tun:/etc/cloudflared
+    networks:
+      - proxy_network
+
+  redis_core:
+    image: redis:latest
+    container_name: redis_core
+    mem_limit: 1024m
+    cpus: 0.5
+    command: redis-server --maxmemory 1024m --maxmemory-policy allkeys-lru --save 60 1000
+    volumes:
+      - ${CORE_CONFIG_PATH}/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
     networks:
       - proxy_network
 
@@ -76,4 +93,6 @@ networks:
   proxy_network:
      name: ${TRAEFIK_NETWORK:-proxy_network}
      driver: bridge
-     external: ${ENABLE_SUBPROXY:-false}
+     external: false
+#${ENABLE_SUBPROXY:-false}
+
