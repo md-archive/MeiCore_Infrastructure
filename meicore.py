@@ -66,7 +66,10 @@ def init_project(project_name, template, env_type):
         ".containers",
         "applications"
     ]
-
+    
+    for directory in DIR_STRUCT:
+        (projectID / directory).mkdir(exist_ok=True)
+    
     config = {
         "project_name": project_name,
         "template": template,
@@ -88,10 +91,6 @@ def init_project(project_name, template, env_type):
         f.write(f"PROJECT_NAME={project_name}\n")
         f.write("# meicore will add pre-created environment variables here, edit values where necessary\n")
 
-
-    for directory in DIR_STRUCT:
-        (projectID / directory).mkdir(exist_ok=True)
-    
     print(f"Creating project: {project_name} with {template} template")
     
 
