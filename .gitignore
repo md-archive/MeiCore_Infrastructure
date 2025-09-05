@@ -6,3 +6,4 @@
 *.sh
 cloud-config.yaml
 *.json
+.temp
