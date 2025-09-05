@@ -1,0 +1,78 @@
+services:
+  # PostgreSQL Database
+  synapse_db:
+    image: postgres:15-alpine
+    container_name: matrix-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${SYNAPSE_DB}
+      - POSTGRES_USER=${SYNAPSE_USER}
+      - POSTGRES_PASSWORD=${SYNAPSE_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - ${MATRIX_DB}:/var/lib/postgresql/data
+    networks:
+      - synapse_internal
+  # Core Matrix Synapse Server
+  synapse_server:
+    image: matrixdotorg/synapse:latest
+    container_name: matrix-synapse
+    restart: unless-stopped
+    environment:
+      - SYNAPSE_SERVER_NAME=${SYNAPSE_DOMAIN_NAME}
+      - SYNAPSE_REPORT_STATS=no
+    volumes:
+      - ${MATRIX_SITE}:/data
+      - ${MATRIX_CONFIG_DATA}:/data/homeserver.yaml:ro
+    labels:
+      - "traefik.enable=true"
+      # Main Matrix API
+      - "traefik.http.routers.synapse.rule=Host(`${SYNAPSE_DOMAIN_NAME}`)"
+      - "traefik.http.routers.synapse.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.synapse.middlewares=synapse-headers"
+      - "traefik.http.services.synapse.loadbalancer.server.port=8008"
+      # Well-known delegation
+      - "traefik.http.routers.synapse-wellknown.rule=Host(`${SYNAPSE_DOMAIN_NAME}`) && PathPrefix(`/.well-known/matrix/`)"
+      - "traefik.http.routers.synapse-wellknown.tls.certresolver=letsencrypt"
+      # Headers middleware for CORS
+      - "traefik.http.middlewares.synapse-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.synapse-headers.headers.customrequestheaders.X-Forwarded-For="
+    networks:
+      - synapse_internal
+      - proxy_network
+
+  # Element Web Client
+  element:
+    image: vectorim/element-web:latest
+    container_name: matrix-element
+    restart: unless-stopped
+    volumes:
+      - ${MATRIX_CONFIG_DATA}:/app/config.json:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.element.rule=Host(`${ELEMENT_DOMAIN_NAME}`) && PathPrefix(`/`)"
+      - "traefik.http.routers.element.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.element.priority=1"
+      - "traefik.http.services.element.loadbalancer.server.port=80"
+    networks:
+      - proxy_network
+
+  # TURN Server for VoIP (optional but recommended)
+  coturn:
+    image: coturn/coturn:latest
+    container_name: matrix-coturn
+    restart: unless-stopped
+    network_mode: host  # Required for TURN to work properly
+    environment:
+      - TURN_SERVER_NAME=${TURN_DOMAIN_NAME}
+      - TURN_SECRET=${TURN_SECRET}
+    volumes:
+      - ${MATRIX_CONFIG_DATA}:/etc/coturn/turnserver.conf:ro
+    command: ["-c", "/etc/coturn/turnserver.conf"]
+
+networks:
+  synapse_internal:
+    driver: bridge
+  proxy_network:
+    external: true
+    name: ${TRAEFIK_NETWORK:-proxy_network}

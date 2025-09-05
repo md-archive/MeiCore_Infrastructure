@@ -4,3 +4,5 @@
 *.log
 *.env
 *.sh
+cloud-config.yaml
+*.json
